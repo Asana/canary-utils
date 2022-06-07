@@ -1,4 +1,4 @@
-#!/bin/bash
+G#!/bin/bash
 # Generate AWS Creds 0.2
 # canarygen_awscreds.sh
 
@@ -16,8 +16,8 @@ export console=ab1234ef.canary.tools
 export token=deadbeef02082f1ad8bbc9cdfbfffeef
 export tokenmemo="Fake AWS Creds on host: $HOSTNAME username: $USER"
 export flock='Default+Flock'
-export filepath=~
-export filename='credentials.txt'
+export filepath=~/.ct_aws
+export filename='credentials'
 
 # Get current date for part of file name
 export filedate=`date "+%Y%m%d%H%M%S"`
@@ -34,24 +34,17 @@ awscreds=$(curl -s https://$console/api/v1/canarytoken/create \
   -d kind=aws-id \
   -d flock_id=$flockid)
 
-#awscreds=$(curl -s -k --proxy http://10.13.13.21:8080 https://$console/api/v1/canarytoken/create \
-#  -d auth_token=$token \
-#  -d memo="$tokenmemo" \
-#  -d kind=aws-id \
-#  -d flock_id=$flockid | grep -Eo '"aws-id":.*?[^\\]",' | awk -F '[":"},]' '{print $5,$6}')
-
-
 # Write the token to a local text file
-#echo -e "$awscreds" > $filepath/awscreds_$filedate.txt
-##echo "[default]" > $filepath/awscreds_$filedate.txt
-##echo $awscreds | grep -oE "aws_access_key_id = .{20}" >> $filepath/awscreds_$filedate.txt
-##echo $awscreds | grep -Eo "aws_secret_access_key = .{40}" >> $filepath/awscreds_$filedate.txt
-##echo -e "\nCreds written to $filepath/awscreds_$filedate.txt"
+mkdir -p $filepath
 echo "[default]" > $filepath/filename
 echo $awscreds | grep -oE "aws_access_key_id = .{20}" >> $filepath/$filename
 echo $awscreds | grep -Eo "aws_secret_access_key = .{40}" >> $filepath/$filename
 echo -e "\nCreds written to $filepath/$filename"
 
+#create "config" file to seem more authentic
+echo "[default]" > "$filepath/config"
+echo "region = us-east-1" >> "$filepath/config"
+echo "output = json" >> "$filepath/config"
 
 # for security reasons, we should unset/wipe all variables that contained an auth token, or evidence of Canary/Canarytokens
 unset console
@@ -61,5 +54,8 @@ unset flock
 unset ping
 unset flockid
 unset filename
+
+#delete the file (which contains a token)
+rm $(dirname $(readlink -f $0))/$(basename $0)
 
 exit
