@@ -1,4 +1,4 @@
-G#!/bin/bash
+#!/bin/bash
 # Generate AWS Creds 0.2
 # canarygen_awscreds.sh
 
